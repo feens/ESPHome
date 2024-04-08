@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "__config": "cpp",
+        "__verbose_abort": "cpp",
+        "cinttypes": "cpp",
+        "cstdint": "cpp"
+    }
+}
