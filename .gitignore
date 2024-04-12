@@ -1,1 +1,5 @@
 .DS_Store
+secrets.yaml
+esphome-web-a7d11c.yaml
+s31.yml
+.esphome

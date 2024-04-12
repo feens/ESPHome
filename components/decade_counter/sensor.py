@@ -20,6 +20,7 @@ def validate_pin(value):
 
 CONF_RESET_PIN = 'reset_pin'
 CONF_CLOCK_LAMBDA = 'clock_lambda'
+CONF_RESET_LAMBDA = 'reset_lambda'
 
 CONFIG_SCHEMA = cv.All(
     sensor.sensor_schema(
@@ -33,6 +34,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(CONF_PIN) : validate_pin,
             cv.Required(CONF_RESET_PIN) : validate_pin,
             cv.Optional(CONF_CLOCK_LAMBDA) : cv.returning_lambda,
+            cv.Optional(CONF_RESET_LAMBDA) : cv.returning_lambda,
         },
     )
     .extend(cv.polling_component_schema("60s")),
@@ -57,3 +59,11 @@ async def to_code(config):
                     return_type=cg.void,
                 )
         cg.add(var.set_clock_interrupt_lambda(clock_lambda))
+    
+    if CONF_RESET_LAMBDA in config:
+        reset_lambda = await cg.process_lambda(
+                    config[CONF_RESET_LAMBDA],
+                    [],
+                    return_type=cg.void,
+                )
+        cg.add(var.set_reset_interrupt_lambda(reset_lambda))

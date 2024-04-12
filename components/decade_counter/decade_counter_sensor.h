@@ -13,7 +13,7 @@ namespace decade_counter {
 
 class DecadeCounterSensorStore {
  public:
-  void setup(InternalGPIOPin *pin, InternalGPIOPin *reset_pin, optional<std::function<void(int32_t)>> clock_lambda) {
+  void setup(InternalGPIOPin *pin, InternalGPIOPin *reset_pin, optional<std::function<void(int32_t)>> clock_lambda, optional<std::function<void(void)>> reset_lambda) {
   // void setup(InternalGPIOPin *pin, InternalGPIOPin *reset_pin) {
     pin->setup();
     this->pin_ = pin->to_isr();
@@ -24,6 +24,7 @@ class DecadeCounterSensorStore {
     reset_pin->attach_interrupt(&DecadeCounterSensorStore::gpio_reset_intr, this, gpio::INTERRUPT_RISING_EDGE);
 
     this->clock_lambda_ = clock_lambda;
+    this->reset_lambda_ = reset_lambda;
   }
   static void gpio_count_intr(DecadeCounterSensorStore *arg);
   static void gpio_reset_intr(DecadeCounterSensorStore *arg);
@@ -34,6 +35,7 @@ class DecadeCounterSensorStore {
   ISRInternalGPIOPin reset_pin_;
   volatile int32_t count_{0};
   optional<std::function<void(int32_t)>> clock_lambda_;
+  optional<std::function<void(void)>> reset_lambda_;
 };
 
 class DecadeCounterSensor : public sensor::Sensor, public PollingComponent {
@@ -41,8 +43,9 @@ class DecadeCounterSensor : public sensor::Sensor, public PollingComponent {
   void set_pin(InternalGPIOPin *pin) { pin_ = pin; }
   void set_reset_pin(InternalGPIOPin *reset_pin) { reset_pin_ = reset_pin; }
   void set_clock_interrupt_lambda(std::function<void(int32_t)> &&clock_lambda) { clock_lambda_ = clock_lambda; }
+  void set_reset_interrupt_lambda(std::function<void(void)> &&reset_lambda) { reset_lambda_ = reset_lambda; }
   // void setup() override { this->store_.setup(this->pin_, this->reset_pin_); }
-  void setup() override { this->store_.setup(this->pin_, this->reset_pin_, this->clock_lambda_); }
+  void setup() override { this->store_.setup(this->pin_, this->reset_pin_, this->clock_lambda_, this->reset_lambda_); }
   void update() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
   void dump_config() override;
@@ -52,6 +55,7 @@ class DecadeCounterSensor : public sensor::Sensor, public PollingComponent {
   InternalGPIOPin *pin_{nullptr};
   InternalGPIOPin *reset_pin_{nullptr};
   std::function<void(int32_t)> clock_lambda_{nullptr};
+  std::function<void(void)> reset_lambda_{nullptr};
 };
 
 }  // namespace decade_counter
